@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>جمع بيانات العملاء</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#e8f4fb;--surface:#fff;--surface2:#f0f8fd;
+  --border:#b8ddf0;--border2:#7bbfe0;
+  --text:#002060;--text2:#1a4a7a;--text3:#5a8aaa;
+  --green:#003087;--green-light:#ddeeff;--green-dark:#001a5c;
+  --red:#c0392b;--red-light:#fdf0ee;
+  --blue:#0099cc;--blue-light:#e0f4fb;
+  --radius:10px;--radius-lg:16px;
+  --shadow:0 1px 3px rgba(0,48,135,0.1),0 4px 16px rgba(0,48,135,0.08);
+}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:1.5rem 1rem 4rem}
+.wrap{max-width:560px;margin:0 auto}
+.hdr{text-align:center;margin-bottom:1.75rem}
+.juhayna-logo{width:160px;height:130px;margin:0 auto 8px;filter:drop-shadow(0 4px 12px rgba(0,153,204,0.25))}
+.hdr h1{font-size:1.5rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:4px;color:#003087}
+.hdr-sub{font-size:0.95rem;color:#0099cc;font-weight:600;margin-bottom:2px}
+.hdr-region{font-size:0.78rem;color:var(--text3);letter-spacing:0.04em}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.card-label{font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);display:flex;align-items:center;gap:6px;margin-bottom:1rem;padding-bottom:8px;border-bottom:1.5px solid var(--blue-light)}
+.card-label svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.field{margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+.field-label{font-size:0.75rem;color:var(--text2);font-weight:500;display:block;margin-bottom:5px}
+.req{color:var(--red);margin-left:2px}
+.opt{color:var(--text3);font-weight:400;font-size:0.7rem;margin-left:4px}
+.text-input,.select-input{width:100%;padding:10px 14px;border:1px solid var(--border2);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:0.88rem;background:var(--surface);color:var(--text);outline:none;transition:border-color 0.2s;-webkit-appearance:none;appearance:none}
+.text-input:focus,.select-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,153,204,0.15)}
+.text-input::placeholder{color:var(--text3)}
+.select-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239e9b93' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer}
+.select-input:disabled{background-color:var(--surface2);color:var(--text3);cursor:not-allowed}
+.mono{font-family:'DM Mono',monospace;font-size:0.95rem;letter-spacing:0.04em;direction:ltr;text-align:right}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.loc-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#003087,#0099cc);border:none;border-radius:var(--radius);padding:12px 14px;cursor:pointer;font-size:0.9rem;font-family:'DM Sans',sans-serif;color:#fff;font-weight:600;transition:all 0.15s}
+.loc-btn:hover{background:var(--green-dark)}
+.loc-btn:disabled{opacity:0.7;cursor:not-allowed}
+.loc-btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.coords-row{display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.submit-btn{width:100%;padding:14px;background:linear-gradient(135deg,#003087,#0099cc);color:#fff;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;box-shadow:0 4px 16px rgba(0,48,135,0.3);margin-top:4px}
+.submit-btn:disabled{background:var(--border2);box-shadow:none;cursor:not-allowed;color:var(--text3)}
+.submit-btn:hover:not(:disabled){background:var(--green-dark)}
+.submit-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.status{font-size:0.82rem;border-radius:var(--radius);padding:9px 13px;margin-top:8px;display:none;align-items:center;gap:7px;line-height:1.5}
+.status.info{background:var(--blue-light);color:var(--blue);display:flex}
+.status.success{background:var(--green-light);color:var(--green-dark);display:flex}
+.status.danger{background:var(--red-light);color:var(--red);display:flex}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;animation:spin 0.7s linear infinite;display:none;flex-shrink:0}
+.success-screen{display:none;text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2.5rem 2rem;box-shadow:var(--shadow)}
+.success-icon{width:60px;height:60px;border-radius:50%;background:var(--blue-light);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center}
+.success-icon svg{width:30px;height:30px;stroke:var(--blue);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.success-screen h2{font-size:1.2rem;font-weight:600;margin-bottom:6px}
+.success-screen p{font-size:0.85rem;color:var(--text2);line-height:1.6}
+.reset-btn{margin-top:1.25rem;padding:10px 24px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:0.875rem;font-weight:500;cursor:pointer;color:var(--text)}
+.reset-btn:hover{background:var(--green-light);color:var(--green-dark);border-color:var(--green)}
+.note{font-size:0.72rem;color:var(--text3);margin-top:-6px;margin-bottom:10px}
+.mandatory-note{font-size:0.75rem;color:var(--text3);margin-bottom:1rem;text-align:center}
+.mandatory-note span{color:var(--red)}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hdr">
+    <div class="juhayna-logo">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAkACQAAD/4QMGRXhpZgAATU0AKgAAAAgABAE7AAIAAAAUAAABSodpAAQAAAABAAABXpydAAEAAAAoAAAC1uocAAcAAAEMAAAAPgAAAAAc6gAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATWFobW91ZCBBYmRlbHJhaGVlbQAABZADAAIAAAAUAAACrJAEAAIAAAAUAAACwJKRAAIAAAADMjMAAJKSAAIAAAADMjMAAOocAAcAAAEMAAABoAAAAAAc6gAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMjAyNToxMjoxNSAxMzoxMTo1MQAyMDI1OjEyOjE1IDEzOjExOjUxAAAATQBhAGgAbQBvAHUAZAAgAEEAYgBkAGUAbAByAGEAaABlAGUAbQAAAP/hBCZodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvADw/eHBhY2tldCBiZWdpbj0n77u/JyBpZD0nVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkJz8+DQo8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIj48cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPjxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSJ1dWlkOmZhZjViZGQ1LWJhM2QtMTFkYS1hZDMxLWQzM2Q3NTE4MmYxYiIgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIi8+PHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEtZDMzZDc1MTgyZjFiIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iPjx4bXA6Q3JlYXRlRGF0ZT4yMDI1LTEyLTE1VDEzOjExOjUxLjIzMDwveG1wOkNyZWF0ZURhdGU+PC9yZGY6RGVzY3JpcHRpb24+PHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEtZDMzZDc1MTgyZjFiIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iPjxkYzpjcmVhdG9yPjxyZGY6U2VxIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+PHJkZjpsaT5NYWhtb3VkIEFiZGVscmFoZWVtPC9yZGY6bGk+PC9yZGY6U2VxPg0KCQkJPC9kYzpjcmVhdG9yPjwvcmRmOkRlc2NyaXB0aW9uPjwvcmRmOlJERj48L3g6eG1wbWV0YT4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8P3hwYWNrZXQgZW5kPSd3Jz8+/9sAQwAHBQUGBQQHBgUGCAcHCAoRCwoJCQoVDxAMERgVGhkYFRgXGx4nIRsdJR0XGCIuIiUoKSssKxogLzMvKjInKisq/9sAQwEHCAgKCQoUCwsUKhwYHCoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq/8AAEQgA6AEcAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8A+kaKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAoorN1LxBpekNtv7yOKQjIjzlj+A5qoxlJ2irkynGCvJ2RpUVi2Xi/Q7+QRwXyB2OAJAVz+dbXWnKEoO0lYUKkKivB3CiiioLCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKK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" alt="Juhayna" style="width:100%;height:100%;object-fit:contain;"/>
+    </div>
+    <h1>جمع بيانات العملاء</h1>
+    <p class="hdr-sub">جهينة للصناعات الغذائية</p>
+    <p class="hdr-region">منطقة صعيد مصر · UPE</p>
+  </div>
+
+  <div id="main-form">
+    <p class="mandatory-note"><span>*</span> الحقول الإلزامية</p>
+
+    <!-- LOCATION -->
+    <div class="card">
+      <div class="card-label">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        الموقع الجغرافي <span style="color:var(--red);margin-left:2px">*</span>
+      </div>
+      <button class="loc-btn" id="loc-btn" onclick="autoDetect()">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        تحديد موقعي تلقائياً
+      </button>
+      <div class="status" id="loc-status"></div>
+      <div class="coords-row" id="coords-row">
+        <div>
+          <label class="field-label">خط العرض</label>
+          <input type="text" class="text-input mono" id="lat-in" readonly/>
+        </div>
+        <div>
+          <label class="field-label">خط الطول</label>
+          <input type="text" class="text-input mono" id="lng-in" readonly/>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMER INFO -->
+    <div class="card">
+      <div class="card-label">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        بيانات العميل
+      </div>
+      <div class="field">
+        <label class="field-label">الاسم <span class="req">*</span></label>
+        <input type="text" class="text-input" id="name-in" placeholder="اسم العميل" oninput="checkReady()"/>
+      </div>
+      <div class="field">
+        <label class="field-label">العنوان <span class="req">*</span></label>
+        <input type="text" class="text-input" id="address-in" placeholder="عنوان العميل" oninput="checkReady()"/>
+      </div>
+      <div class="field">
+        <label class="field-label">التليفون <span class="req">*</span></label>
+        <input type="text" class="text-input mono" id="phone-in" placeholder="01xxxxxxxxx" inputmode="numeric" oninput="checkReady()"/>
+      </div>
+      <div class="field">
+        <label class="field-label">قناة البيع <span class="req">*</span></label>
+        <select class="select-input" id="channel-in" onchange="checkReady()">
+          <option value="">اختر قناة البيع...</option>
+          <option value="Retail">Retail</option>
+          <option value="WS">WS</option>
+          <option value="Commanda">Commanda</option>
+          <option value="Distributer">Distributer</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- TERRITORY -->
+    <div class="card">
+      <div class="card-label">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        النطاق الجغرافي
+      </div>
+      <div class="field">
+        <label class="field-label">المخزن <span class="req">*</span></label>
+        <select class="select-input" id="plant-in" onchange="onPlant()">
+          <option value="">اختر المخزن...</option>
+          <option value="T007  Menia">T007 — Menia</option>
+          <option value="T008  Assuit">T008 — Assuit</option>
+          <option value="T010  Aswan">T010 — Aswan</option>
+          <option value="T018  Beni Swef">T018 — Beni Swef</option>
+          <option value="T021  Sohag">T021 — Sohag</option>
+          <option value="T030  Qena">T030 — Qena</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">المحافظة <span class="req">*</span></label>
+        <select class="select-input" id="gov-in" onchange="onGov()" disabled>
+          <option value="">اختر المحافظة...</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">المنطقة <span class="req">*</span></label>
+        <select class="select-input" id="area-in" onchange="checkReady()" disabled>
+          <option value="">اختر المنطقة...</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- CLASSIFICATION -->
+    <div class="card">
+      <div class="card-label">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+        التصنيف
+      </div>
+      <div class="field">
+        <label class="field-label">النشاط <span class="req">*</span></label>
+        <select class="select-input" id="industry-in" onchange="checkReady()">
+          <option value="">اختر النشاط...</option>
+          <option value="1  Supermarket">1 — Supermarket</option>
+          <option value="2  Large Grocery">2 — Large Grocery</option>
+          <option value="3  Kiosk">3 — Kiosk</option>
+          <option value="4  W/S">4 — W/S</option>
+          <option value="5  Distributor">5 — Distributor</option>
+          <option value="6  Hospital">6 — Hospital</option>
+          <option value="7  School">7 — School</option>
+          <option value="8  University">8 — University</option>
+          <option value="9  Gas Station">9 — Gas Station</option>
+          <option value="10  Factory">10 — Factory</option>
+          <option value="11  Firm">11 — Firm</option>
+          <option value="12  Hotels">12 — Hotels</option>
+          <option value="13  Club">13 — Club</option>
+          <option value="14  Boat">14 — Boat</option>
+          <option value="15  Orphanage">15 — Orphanage</option>
+          <option value="16  Coffee Shop">16 — Coffee Shop</option>
+          <option value="17  Restaurant">17 — Restaurant</option>
+          <option value="18  Pastry">18 — Pastry</option>
+          <option value="19  Tasali">19 — Tasali</option>
+          <option value="20  Juice Shop">20 — Juice Shop</option>
+          <option value="21  Monastery">21 — Monastery</option>
+          <option value="22  Embassy">22 — Embassy</option>
+          <option value="23  Laban Shop">23 — Laban Shop</option>
+          <option value="24  Catering">24 — Catering</option>
+          <option value="25  Government agency">25 — Government agency</option>
+          <option value="26  Others">26 — Others</option>
+          <option value="27  Hyper Market">27 — Hyper Market</option>
+          <option value="28  Exhibition">28 — Exhibition</option>
+          <option value="29  Tri-Cycle">29 — Tri-Cycle</option>
+          <option value="30  Small Grocery">30 — Small Grocery</option>
+          <option value="31  Small Gas Station">31 — Small Gas Station</option>
+          <option value="35  Key Account">35 — Key Account</option>
+          <option value="37  Retail-Milk">37 — Retail-Milk</option>
+          <option value="39  Retail-Chilled">39 — Retail-Chilled</option>
+          <option value="43  Super Market">43 — Super Market</option>
+          <option value="52  Horeca">52 — Horeca</option>
+          <option value="53  Tender">53 — Tender</option>
+          <option value="57  E-commerce">57 — E-commerce</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">التصنيف <span class="req">*</span></label>
+        <select class="select-input" id="cgroup-in" onchange="checkReady()">
+          <option value="">Select Customer Group...</option>
+          <option value="1  Hyper Market">1 — Hyper Market</option>
+          <option value="2  Large Grocery">2 — Large Grocery</option>
+          <option value="3  Small Grocery">3 — Small Grocery</option>
+          <option value="4  Sales Rep">4 — Sales Rep</option>
+          <option value="5  W/S A">5 — W/S A</option>
+          <option value="6  W/S B">6 — W/S B</option>
+          <option value="7  Outlet">7 — Outlet</option>
+          <option value="8  Distributor">8 — Distributor</option>
+          <option value="10  Direct A">10 — Direct A</option>
+          <option value="11  Direct B">11 — Direct B</option>
+          <option value="12  Direct C">12 — Direct C</option>
+          <option value="14  Special Deals">14 — Special Deals</option>
+          <option value="19  Special Deals (Van)">19 — Special Deals (Van)</option>
+          <option value="20  Dry Products">20 — Dry Products</option>
+          <option value="21  Chilled Products">21 — Chilled Products</option>
+          <option value="22  Multi Trade">22 — Multi Trade</option>
+          <option value="25  W/S A PO">25 — W/S A PO</option>
+          <option value="26  W/S B PO">26 — W/S B PO</option>
+          <option value="27  Direct A PO">27 — Direct A PO</option>
+          <option value="28  Direct B PO">28 — Direct B PO</option>
+          <option value="29  Direct C PO">29 — Direct C PO</option>
+          <option value="30  Distr. (New Model)">30 — Distr. (New Model)</option>
+          <option value="31  Kazyon">31 — Kazyon</option>
+          <option value="34  Tenders">34 — Tenders</option>
+          <option value="35  EL-Marwa">35 — EL-Marwa</option>
+          <option value="37  Kiosk">37 — Kiosk</option>
+          <option value="39  Tri-Cycle">39 — Tri-Cycle</option>
+          <option value="40  Super Market (GOV)">40 — Super Market (GOV)</option>
+          <option value="41  Comanda">41 — Comanda</option>
+          <option value="42  Comanda B">42 — Comanda B</option>
+          <option value="43  Super Market">43 — Super Market</option>
+          <option value="44  W/S C">44 — W/S C</option>
+          <option value="45  W/S C PO">45 — W/S C PO</option>
+          <option value="46  New Distributors">46 — New Distributors</option>
+          <option value="47  Small Grocery (BRD)">47 — Small Grocery (BRD)</option>
+          <option value="48  Large Grocery (BRD)">48 — Large Grocery (BRD)</option>
+          <option value="49  Super Market (BRD)">49 — Super Market (BRD)</option>
+          <option value="50  Kiosk (BRD)">50 — Kiosk (BRD)</option>
+          <option value="51  Tri-Cycle (BRD)">51 — Tri-Cycle (BRD)</option>
+          <option value="52  Direct A (BRD)">52 — Direct A (BRD)</option>
+          <option value="53  Direct C (BRD)">53 — Direct C (BRD)</option>
+          <option value="54  W/S A (BRD)">54 — W/S A (BRD)</option>
+          <option value="55  W/S B (BRD)">55 — W/S B (BRD)</option>
+          <option value="64  Dist. Cost+">64 — Dist. Cost+</option>
+          <option value="65  Key Account">65 — Key Account</option>
+          <option value="66  Large Grocery - CH">66 — Large Grocery - CH</option>
+          <option value="67  KIOSK">67 — KIOSK</option>
+          <option value="80  Vehicles">80 — Vehicles</option>
+          <option value="2J  Juice Key Retail">2J — Juice Key Retail</option>
+          <option value="2M  Milk Key Retail">2M — Milk Key Retail</option>
+          <option value="KR  Key Retail (Dry)">KR — Key Retail (Dry)</option>
+          <option value="ZC  Chilled">ZC — Chilled</option>
+          <option value="ZD  Retail Dry">ZD — Retail Dry</option>
+          <option value="ZJ  Juice">ZJ — Juice</option>
+          <option value="ZM  Milk">ZM — Milk</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ROUTES & DOCUMENTS -->
+    <div class="card">
+      <div class="card-label">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h12"/></svg>
+        المسارات والمستندات
+      </div>
+      <div class="three-col field">
+        <div>
+          <label class="field-label">مسار 1 <span class="req">*</span></label>
+          <input type="text" class="text-input mono" id="route1-in" placeholder="مثال: 2292" oninput="checkReady()"/>
+        </div>
+        <div>
+          <label class="field-label">مسار 2 <span class="opt">(اختياري)</span></label>
+          <input type="text" class="text-input mono" id="route2-in" placeholder="مثال: 2260"/>
+        </div>
+        <div>
+          <label class="field-label">مسار 3 <span class="opt">(اختياري)</span></label>
+          <input type="text" class="text-input mono" id="route3-in" placeholder="مثال: 2281"/>
+        </div>
+      </div>
+      <p class="note">يجب إدخال مسار 1 على الأقل</p>
+      <div class="two-col field">
+        <div>
+          <label class="field-label">البطاقة الضريبية — EG01 <span class="opt">(اختياري)</span></label>
+          <input type="text" class="text-input mono" id="tax-in" placeholder="رقم البطاقة الضريبية"/>
+        </div>
+        <div>
+          <label class="field-label">السجل التجاري — EG02 <span class="opt">(اختياري)</span></label>
+          <input type="text" class="text-input mono" id="reg-in" placeholder="رقم السجل التجاري"/>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">الرقم القومي — EG03 <span class="req">*</span></label>
+        <input type="text" class="text-input mono" id="id-in"
+          maxlength="14" placeholder="الرقم القومي المكون من 14 رقم"
+          inputmode="numeric" oninput="onId()"/>
+        <div class="status" id="id-status"></div>
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitRecord()" disabled>
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      <span id="submit-label">حفظ البيانات</span>
+      <div class="spin" id="submit-spin"></div>
+    </button>
+    <div class="status" id="submit-status"></div>
+  </div>
+
+  <div class="success-screen" id="success-screen">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2>تم الحفظ بنجاح!</h2>
+    <p>تمت إضافة بيانات العميل بنجاح.</p>
+    <p style="font-size:0.8rem;color:var(--text2);margin-top:6px;font-weight:600;">سيتم تكويد العميل خلال 10 أيام عمل على الحد الأقصى</p>
+    <p style="font-size:0.75rem;color:var(--text3);margin-top:8px;font-style:italic;">Caring Everyday since 1983</p>
+    <button class="reset-btn" onclick="resetAll()">إضافة عميل آخر</button>
+  </div>
+
+  <p style="text-align:center;font-size:0.7rem;color:var(--text3);margin-top:1.5rem;direction:ltr;">Made By Mahmoud Abd Alraheem</p>
+
+</div>
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwevQ42Pooaw3wvVdNLCv7f-iakMfGUrSq14W66lBI8Vm-2llZU5gRgDr8Q_ZZgwsZK/exec';
+
+const HIERARCHY = {
+  'T007  Menia':{'12   Menia':['11 الفشن','12 شرق المنيا 1','13 شرق المنيا 2','14 غرب المنيا','15 العدوة','16 مغاغة','17 بنى مزار','18 مطاى','19 سمالوط','20 أبو قرقاص','21 ملوى','22 دير مواس','537 قرى المنيا بحري','573 قرى مغاغه','574 قرى بنى مزار','575 قرى سمالوط','576 قرى مطاى','577 قرى ابوقرقاص','578 قرى ملوى','579 قرى ديرواس','580 شلبى','581 العزبه','7 ببا','ACM 6 أكتوبر','ACN دماريس','ACO قري شرق النيل','ACP قري غرب المنيا','ACQ سمسطا','AKH سكتة تلة','AKI قرى المنيا قبلى شرق','AKJ قرى ابوقرقاص غرب','AKL قرى ابو قرقاص شرق','AKM قرى ملوى غرب','AKO وسط المدينة قبلى','AKP طه حسين','AKQ بلاس']},
+  'T008  Assuit':{'1    Assiut':['23 شرق أسيوط 1','24 شرق أسيوط 2','25 غرب أسيوط','26 ديروط','27 القوصية','28 منفلوط','29 أبوتيج','30 صدفا','31 الغنايم','32 الفتح','33 أبنوب','34 ساحل سليم','35 البدارى','533 الوليدية','534 الحقوقيين','600 احياء اسيوط','628 فريال شرق اسيوط','839 غرب اسيوط 2','AAS غرب البلد','ACR قرى قبلى','ACS نزلة عبداللاه','ADI المجاهدين','ADL منقباد','ADW شارع رياض','ALF فريال الجديده','ALG المحافظه','ALH سيتى الاول','ALI السادات','ALJ الاربعين','ALK الجمهوريه','ALX سيتى الثانى']},
+  'T010  Aswan':{'2    Aswan':['388 أبو سمبل','479 غرب أسوان','480 دراو','500 وسط أسوان','503 نصر النوبة','513 المحمودية','56 شرق أسوان','57 إدفو','58 كوم أمبو']},
+  'T018  Beni Swef':{'3    Bani Suief':['10 الواسطى','477 المدينة شرق النيل','478 ش عبد السلام عارف','571 ارياف بني سويف','584 ارياف الوسطي','6 ش صلاح سالم','609 مقبل','8 اهنسيا','9 ناصر','ABM الصف','AEJ ارض المحلج','AEK العياط','AKR منطقة الرمد','AKS حى الزهور','AKT ش الرياضى','AKU منطقة الغمراوى','AKW موقف محى الدين','AKX منطقة الجزيرة','AKY قرى طريق بنى سويف','AKZ مركز سمسطا','AMT منطقة الحمراية','AMU خلف التأمين الصحى','AMV منطقة الاباصيرى','AMW شارع الروضة','AMX الكورنيش','AMY طراد النيل الواسطى'],'7    Fayoum':['1 داله','2 سنورس','3 إبشواي','4 أطسا','5 طامية','510 شرق الفيوم','569 شمال الفيوم','613 دمو','614 الكيمان','835 قرى خط الاهون','836 المنطقة الصناعية','837 المسلة','843 الصوفى','ALA طريق مصر كوم اوشيم','ALM العبودي','ALN الحادقة','ALO قحافة','ALP باغوص','ALQ ارض الجون','ALR الحواتم','ALS السلخانه','ALT لطف الله','ALU المرور','ALV الشارع الجديد','ALW مصطفى حسن']},
+  'T021  Sohag':{'18   Sohag':['36 غرب سوهاج','37 طهطا','38 المراغة','39 جهينة','40 المنشأة','41 جرجا','42 البلينا','43 ساقلته','44 أخميم','45 دار السلام','47 طما','490 شرق سوهاج','501 العسيرات','511 الشهيد والمخبز','586 المحطة و العارف','ACF اليوم الواحد','ALY كاذالوفا','ALZ الجامعه','AMA الحميات والكاشف','AMC الجمهورية','AMD اسيوط سوهاج','AME ش البحر والمحطه']},
+  'T030  Qena':{'11   Kena':['46 أبو طشت','48 قنا','49 دشنا','50 قوص','51 نجع حمادى','555 المحروسة','632 قنا شرق','868 نقادة','907 قفط','ADZ نجع حمادى غرب','AEL دندرة','AGD غرب قفط','AMF قنا الجديده','AMG مدينه العمال','AMH عمر افندي','AMI ميدان الساعه','AMJ الحصوايه','AMK الشئون والمساكن','AML مصنع المكرونه'],'29   Luxor':['491 القرنة','492 المنشأة','496 الكرنك','497 البياضية','498 شرق السكة','52 الأقصر1','53 الأقصر2','54 إسنا','55 أرمنت','840 الضبعيه','841 الطود','842 شرق اسنا','AMM مدينه طيبه','AMN ابو الجود والمنشيه','AMO المدينه والتلفزيون','AMP العواميه','AMR ارمنت الحيط','AMS ارمنت الوابورات']}
+};
+
+let state = { lat:'', lng:'', idNumber:'' };
+
+window.addEventListener('load', autoDetect);
+
+function autoDetect() {
+  const btn = document.getElementById('loc-btn');
+  btn.disabled = true;
+  showStatus('loc-status','info','جارٍ تحديد موقعك…');
+  if (!navigator.geolocation) {
+    showStatus('loc-status','danger','تحديد الموقع غير مدعوم على هذا المتصفح.');
+    btn.disabled = false; return;
+  }
+  navigator.geolocation.getCurrentPosition(pos => {
+    state.lat = pos.coords.latitude.toFixed(6);
+    state.lng = pos.coords.longitude.toFixed(6);
+    document.getElementById('lat-in').value = state.lat;
+    document.getElementById('lng-in').value = state.lng;
+    document.getElementById('coords-row').style.display = 'grid';
+    showStatus('loc-status','success','✓ تم تحديد الموقع: '+state.lat+', '+state.lng);
+    btn.innerHTML = `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> تم تحديد الموقع`;
+    btn.style.background = 'var(--green-dark)';
+    btn.disabled = false;
+    checkReady();
+  }, err => {
+    btn.disabled = false;
+    let msg = 'تم حظر الموقع. اضغط على أيقونة القفل ← الموقع ← السماح ← أعد المحاولة.';
+    if (err.code===2) msg='تحديد الموقع غير متاح. تأكد من تفعيل خدمة الموقع.';
+    if (err.code===3) msg='انتهت المهلة. حاول مرة أخرى.';
+    showStatus('loc-status','danger',msg);
+    btn.innerHTML = `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg> إعادة تحديد الموقع`;
+  }, {enableHighAccuracy:true, timeout:12000, maximumAge:0});
+}
+
+function onId() {
+  const val = document.getElementById('id-in').value.trim();
+  if (/^\d{14}$/.test(val)) {
+    state.idNumber = '';
+    showStatus('id-status', 'info', 'جارٍ التحقق من قاعدة البيانات…');
+    checkDuplicateId(val);
+  } else {
+    state.idNumber = '';
+    if (val.length === 14) showStatus('id-status', 'danger', 'يجب أن يتكون من 14 رقم بالضبط.');
+    else hideStatus('id-status');
+    checkReady();
+  }
+}
+
+function checkDuplicateId(nationalId) {
+  const checkUrl = SCRIPT_URL + '?action=checkId&nationalId=' + encodeURIComponent(nationalId);
+  fetch(checkUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (data.found) {
+        state.idNumber = '';
+        showStatus('id-status', 'danger',
+          `❌ هذا العميل مكود بالفعل — الاسم: "${data.customerName}" — الكود: "${data.customerCode}"`);
+      } else {
+        state.idNumber = nationalId;
+        showStatus('id-status', 'success', '✅ رقم قومي صحيح — عميل جديد');
+      }
+      checkReady();
+    })
+    .catch(() => {
+      // If check fails network-wise, allow but warn
+      state.idNumber = nationalId;
+      showStatus('id-status', 'info', '⚠️ تعذّر التحقق من قاعدة البيانات — تم قبول الرقم مؤقتاً.');
+      checkReady();
+    });
+}
+
+function onPlant() {
+  const plant = document.getElementById('plant-in').value;
+  const govSel = document.getElementById('gov-in');
+  const areaSel = document.getElementById('area-in');
+  govSel.innerHTML = '<option value="">Select Governorate...</option>';
+  areaSel.innerHTML = '<option value="">Select Area...</option>';
+  areaSel.disabled = true;
+  if (!plant) { govSel.disabled = true; checkReady(); return; }
+  Object.keys(HIERARCHY[plant]||{}).forEach(g => {
+    const o = document.createElement('option');
+    o.value = g; o.textContent = g; govSel.appendChild(o);
+  });
+  govSel.disabled = false;
+  checkReady();
+}
+
+function onGov() {
+  const plant = document.getElementById('plant-in').value;
+  const gov = document.getElementById('gov-in').value;
+  const areaSel = document.getElementById('area-in');
+  areaSel.innerHTML = '<option value="">Select Area...</option>';
+  if (!gov) { areaSel.disabled = true; checkReady(); return; }
+  (HIERARCHY[plant]?.[gov]||[]).forEach(a => {
+    const o = document.createElement('option');
+    o.value = a; o.textContent = a; areaSel.appendChild(o);
+  });
+  areaSel.disabled = false;
+  checkReady();
+}
+
+function checkReady() {
+  const name = document.getElementById('name-in').value.trim();
+  const address = document.getElementById('address-in').value.trim();
+  const phone = document.getElementById('phone-in').value.trim();
+  const channel = document.getElementById('channel-in').value;
+  const plant = document.getElementById('plant-in').value;
+  const gov = document.getElementById('gov-in').value;
+  const area = document.getElementById('area-in').value;
+  const industry = document.getElementById('industry-in').value;
+  const cgroup = document.getElementById('cgroup-in').value;
+  const route1 = document.getElementById('route1-in').value.trim();
+  const ok = state.lat && state.lng && state.idNumber && name && address && phone &&
+             channel && plant && gov && area && industry && cgroup && route1;
+  document.getElementById('submit-btn').disabled = !ok;
+}
+
+function submitRecord() {
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('submit-label').textContent = 'جارٍ الحفظ…';
+  document.getElementById('submit-spin').style.display = 'block';
+  showStatus('submit-status','info','جارٍ إرسال البيانات…');
+
+  const params = new URLSearchParams({
+    gps:        state.lat + ', ' + state.lng,
+    name:       document.getElementById('name-in').value.trim(),
+    address:    document.getElementById('address-in').value.trim(),
+    phone:      document.getElementById('phone-in').value.trim(),
+    channel:    document.getElementById('channel-in').value,
+    region:     'UPE',
+    governorate:document.getElementById('gov-in').value,
+    salesGroup: document.getElementById('area-in').value,
+    plant:      document.getElementById('plant-in').value,
+    industry:   document.getElementById('industry-in').value,
+    custGroup:  document.getElementById('cgroup-in').value,
+    route1:     document.getElementById('route1-in').value.trim(),
+    route2:     document.getElementById('route2-in').value.trim(),
+    route3:     document.getElementById('route3-in').value.trim(),
+    eg01:       document.getElementById('tax-in').value.trim(),
+    eg02:       document.getElementById('reg-in').value.trim(),
+    eg03:       state.idNumber
+  });
+
+  fetch(SCRIPT_URL + '?' + params.toString(), {mode:'no-cors'})
+    .then(() => {
+      document.getElementById('submit-spin').style.display = 'none';
+      document.getElementById('main-form').style.display = 'none';
+      document.getElementById('success-screen').style.display = 'block';
+    })
+    .catch(() => {
+      document.getElementById('submit-spin').style.display = 'none';
+      document.getElementById('submit-btn').disabled = false;
+      document.getElementById('submit-label').textContent = 'حفظ البيانات';
+      showStatus('submit-status','danger','فشل الإرسال. تحقق من الإنترنت وحاول مرة أخرى.');
+    });
+}
+
+function resetAll() {
+  state = {lat:'',lng:'',idNumber:''};
+  ['name-in','address-in','phone-in','route1-in','route2-in','route3-in','tax-in','reg-in','id-in'].forEach(id=>document.getElementById(id).value='');
+  ['plant-in','gov-in','area-in','cgroup-in','industry-in','channel-in'].forEach(id=>document.getElementById(id).selectedIndex=0);
+  document.getElementById('gov-in').disabled = true;
+  document.getElementById('area-in').disabled = true;
+  document.getElementById('coords-row').style.display = 'none';
+  document.getElementById('lat-in').value = '';
+  document.getElementById('lng-in').value = '';
+  document.getElementById('submit-label').textContent = 'حفظ البيانات';
+  document.getElementById('loc-btn').disabled = false;
+  document.getElementById('loc-btn').style.background = '';
+  document.getElementById('loc-btn').innerHTML = `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg> تحديد موقعي تلقائياً`;
+  ['id-status','loc-status','submit-status'].forEach(id=>hideStatus(id));
+  document.getElementById('main-form').style.display = '';
+  document.getElementById('success-screen').style.display = 'none';
+  checkReady();
+  autoDetect();
+}
+
+function showStatus(id,type,msg){const el=document.getElementById(id);el.className='status '+type;el.textContent=msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+</script>
+</body>
+</html>
+
+<!-- ADMIN PANEL -->
+<div id="admin-overlay" dir="ltr" style="display:none;position:fixed;inset:0;background:rgba(0,32,96,0.85);z-index:1000;overflow-y:auto;padding:2rem 1rem 4rem;text-align:left;">
+<div style="max-width:600px;margin:0 auto;">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+    <div>
+      <h2 style="color:#fff;font-size:1.2rem;font-weight:700;">⚙️ Admin Panel</h2>
+      <p style="color:#7bbfe0;font-size:0.78rem;">Manage all dropdown options</p>
+    </div>
+    <button onclick="closeAdmin()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.85rem;">✕ Close</button>
+  </div>
+
+  <!-- Sales Channels -->
+  <div class="admin-card">
+    <div class="admin-card-title">📢 Sales Channels</div>
+    <div id="admin-channels-list" class="admin-list"></div>
+    <div class="admin-add-row">
+      <input type="text" id="new-channel" class="admin-input" placeholder="New channel name..."/>
+      <button onclick="addItem('channels','new-channel')" class="admin-add-btn">+ Add</button>
+    </div>
+  </div>
+
+  <!-- Plants -->
+  <div class="admin-card">
+    <div class="admin-card-title">🏭 Plants</div>
+    <div id="admin-plants-list" class="admin-list"></div>
+    <div class="admin-add-row">
+      <input type="text" id="new-plant" class="admin-input" placeholder="e.g. T040  NewCity"/>
+      <button onclick="addItem('plants','new-plant')" class="admin-add-btn">+ Add</button>
+    </div>
+  </div>
+
+  <!-- Hierarchy Manager -->
+  <div class="admin-card">
+    <div class="admin-card-title">🗺️ Governorates & Areas</div>
+    <div style="margin-bottom:10px;">
+      <label style="font-size:0.75rem;color:#7bbfe0;display:block;margin-bottom:4px;">Select Plant</label>
+      <select id="admin-plant-sel" class="admin-select" onchange="loadAdminGovs()">
+        <option value="">Choose plant...</option>
+      </select>
+    </div>
+    <div id="admin-gov-section" style="display:none;">
+      <div id="admin-govs-list" class="admin-list"></div>
+      <div class="admin-add-row">
+        <input type="text" id="new-gov" class="admin-input" placeholder="e.g. 15   NewGov"/>
+        <button onclick="addGov()" class="admin-add-btn">+ Add Gov</button>
+      </div>
+      <div style="margin-top:12px;">
+        <label style="font-size:0.75rem;color:#7bbfe0;display:block;margin-bottom:4px;">Select Governorate to manage areas</label>
+        <select id="admin-gov-sel" class="admin-select" onchange="loadAdminAreas()">
+          <option value="">Choose governorate...</option>
+        </select>
+      </div>
+      <div id="admin-area-section" style="display:none;margin-top:10px;">
+        <div id="admin-areas-list" class="admin-list"></div>
+        <div class="admin-add-row">
+          <input type="text" id="new-area" class="admin-input" placeholder="e.g. AMZ اسم المنطقة"/>
+          <button onclick="addArea()" class="admin-add-btn">+ Add Area</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Groups -->
+  <div class="admin-card">
+    <div class="admin-card-title">👥 Customer Groups</div>
+    <div id="admin-cgroups-list" class="admin-list" style="max-height:200px;overflow-y:auto;"></div>
+    <div class="admin-add-row">
+      <input type="text" id="new-cgroup" class="admin-input" placeholder="e.g. 99  New Group"/>
+      <button onclick="addItem('cgroups','new-cgroup')" class="admin-add-btn">+ Add</button>
+    </div>
+  </div>
+
+  <!-- Industries -->
+  <div class="admin-card">
+    <div class="admin-card-title">🏪 Industries</div>
+    <div id="admin-industries-list" class="admin-list" style="max-height:200px;overflow-y:auto;"></div>
+    <div class="admin-add-row">
+      <input type="text" id="new-industry" class="admin-input" placeholder="e.g. 99  New Industry"/>
+      <button onclick="addItem('industries','new-industry')" class="admin-add-btn">+ Add</button>
+    </div>
+  </div>
+
+  <button onclick="saveAdminData()" style="width:100%;padding:13px;background:linear-gradient(135deg,#003087,#0099cc);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;margin-top:8px;">
+    💾 Save All Changes
+  </button>
+  <div id="admin-save-status" style="text-align:center;font-size:0.82rem;color:#7bbfe0;margin-top:8px;display:none;"></div>
+
+</div>
+</div>
+
+<!-- Login Modal -->
+<div id="admin-login" dir="ltr" style="display:none;position:fixed;inset:0;background:rgba(0,32,96,0.9);z-index:2000;display:none;align-items:center;justify-content:center;text-align:center;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;width:320px;text-align:center;box-shadow:0 8px 32px rgba(0,48,135,0.3);">
+    <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#003087,#0099cc);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    </div>
+    <h3 style="font-size:1.1rem;font-weight:700;color:#003087;margin-bottom:4px;">Admin Access</h3>
+    <p style="font-size:0.8rem;color:#5a8aaa;margin-bottom:1rem;">Enter password to continue</p>
+    <input type="password" id="admin-pwd" placeholder="Password"
+      style="width:100%;padding:10px 14px;border:1px solid #b8ddf0;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;margin-bottom:8px;"
+      onkeydown="if(event.key==='Enter')checkAdminPwd()"/>
+    <div id="pwd-error" style="font-size:0.78rem;color:#c0392b;margin-bottom:8px;display:none;">Incorrect password</div>
+    <button onclick="checkAdminPwd()" style="width:100%;padding:11px;background:linear-gradient(135deg,#003087,#0099cc);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">
+      Enter
+    </button>
+    <button onclick="document.getElementById('admin-login').style.display='none'" style="width:100%;padding:11px;background:none;border:none;color:#5a8aaa;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;margin-top:4px;">
+      Cancel
+    </button>
+  </div>
+</div>
+
+<!-- Admin Button (bottom right) -->
+<button onclick="openAdminLogin()" style="position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#003087,#0099cc);border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,48,135,0.4);display:flex;align-items:center;justify-content:center;z-index:999;">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+</button>
+
+<style>
+.admin-card{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:1rem;margin-bottom:1rem;}
+.admin-card-title{font-size:0.8rem;font-weight:700;color:#7bbfe0;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;}
+.admin-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:30px;}
+.admin-tag{background:rgba(0,153,204,0.2);border:1px solid rgba(0,153,204,0.4);color:#e0f4fb;padding:4px 10px;border-radius:20px;font-size:0.78rem;display:flex;align-items:center;gap:6px;}
+.admin-tag button{background:none;border:none;color:#7bbfe0;cursor:pointer;font-size:0.9rem;padding:0;line-height:1;}
+.admin-tag button:hover{color:#ff6b6b;}
+.admin-add-row{display:flex;gap:8px;}
+.admin-input{flex:1;padding:8px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;}
+.admin-input::placeholder{color:rgba(255,255,255,0.4);}
+.admin-add-btn{padding:8px 14px;background:rgba(0,153,204,0.3);border:1px solid rgba(0,153,204,0.5);color:#e0f4fb;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;white-space:nowrap;}
+.admin-add-btn:hover{background:rgba(0,153,204,0.5);}
+.admin-select{width:100%;padding:8px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;}
+.admin-select option{background:#003087;color:#fff;}
+</style>
+
+<script>
+const ADMIN_PWD = 'M.abdo5597';
+
+// Admin data stored in localStorage
+let adminData = {
+  channels: ['Retail','WS','Commanda','Distributer'],
+  plants: ['T007  Menia','T008  Assuit','T010  Aswan','T018  Beni Swef','T021  Sohag','T030  Qena'],
+  cgroups: ['1  Hyper Market','2  Large Grocery','3  Small Grocery','4  Sales Rep','5  W/S A','6  W/S B','7  Outlet','8  Distributor','10  Direct A','11  Direct B','12  Direct C','14  Special Deals','19  Special Deals (Van)','20  Dry Products','21  Chilled Products','22  Multi Trade','25  W/S A PO','26  W/S B PO','27  Direct A PO','28  Direct B PO','29  Direct C PO','30  Distr. (New Model)','31  Kazyon','34  Tenders','35  EL-Marwa','37  Kiosk','39  Tri-Cycle','40  Super Market (GOV)','41  Comanda','42  Comanda B','43  Super Market','44  W/S C','45  W/S C PO','46  New Distributors','47  Small Grocery (BRD)','48  Large Grocery (BRD)','49  Super Market (BRD)','50  Kiosk (BRD)','51  Tri-Cycle (BRD)','52  Direct A (BRD)','53  Direct C (BRD)','54  W/S A (BRD)','55  W/S B (BRD)','64  Dist. Cost+','65  Key Account','66  Large Grocery - CH','67  KIOSK','80  Vehicles','2J  Juice Key Retail','2M  Milk Key Retail','KR  Key Retail (Dry)','ZC  Chilled','ZD  Retail Dry','ZJ  Juice','ZM  Milk'],
+  industries: ['1  Supermarket','2  Large Grocery','3  Kiosk','4  W/S','5  Distributor','6  Hospital','7  School','8  University','9  Gas Station','10  Factory','11  Firm','12  Hotels','13  Club','14  Boat','15  Orphanage','16  Coffee Shop','17  Restaurant','18  Pastry','19  Tasali','20  Juice Shop','21  Monastery','22  Embassy','23  Laban Shop','24  Catering','25  Government agency','26  Others','27  Hyper Market','28  Exhibition','29  Tri-Cycle','30  Small Grocery','31  Small Gas Station','35  Key Account','37  Retail-Milk','39  Retail-Chilled','43  Super Market','52  Horeca','53  Tender','57  E-commerce'],
+  hierarchy: JSON.parse(JSON.stringify(HIERARCHY))
+};
+
+// Load from localStorage if exists
+function loadAdminData() {
+  const saved = localStorage.getItem('juhayna_admin_data');
+  if (saved) {
+    try {
+      adminData = JSON.parse(saved);
+      // Sync HIERARCHY with adminData
+      Object.assign(HIERARCHY, adminData.hierarchy);
+    } catch(e) {}
+  }
+  syncFormDropdowns();
+}
+
+function syncFormDropdowns() {
+  // Sync Sales Channel
+  const chSel = document.getElementById('channel-in');
+  const curCh = chSel.value;
+  chSel.innerHTML = '<option value="">Select Sales Channel...</option>';
+  adminData.channels.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    if (c === curCh) o.selected = true;
+    chSel.appendChild(o);
+  });
+
+  // Sync Plant
+  const pSel = document.getElementById('plant-in');
+  const curP = pSel.value;
+  pSel.innerHTML = '<option value="">Select Plant...</option>';
+  adminData.plants.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    if (p === curP) o.selected = true;
+    pSel.appendChild(o);
+  });
+
+  // Sync Customer Group
+  const cgSel = document.getElementById('cgroup-in');
+  const curCg = cgSel.value;
+  cgSel.innerHTML = '<option value="">Select Customer Group...</option>';
+  adminData.cgroups.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    if (c === curCg) o.selected = true;
+    cgSel.appendChild(o);
+  });
+
+  // Sync Industry
+  const indSel = document.getElementById('industry-in');
+  const curInd = indSel.value;
+  indSel.innerHTML = '<option value="">Select Industry...</option>';
+  adminData.industries.forEach(i => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = i;
+    if (i === curInd) o.selected = true;
+    indSel.appendChild(o);
+  });
+
+  // Update HIERARCHY
+  Object.keys(adminData.hierarchy).forEach(k => { HIERARCHY[k] = adminData.hierarchy[k]; });
+}
+
+function openAdminLogin() {
+  document.getElementById('admin-login').style.display = 'flex';
+  document.getElementById('admin-pwd').value = '';
+  document.getElementById('pwd-error').style.display = 'none';
+  setTimeout(() => document.getElementById('admin-pwd').focus(), 100);
+}
+
+function checkAdminPwd() {
+  const pwd = document.getElementById('admin-pwd').value;
+  if (pwd === ADMIN_PWD) {
+    document.getElementById('admin-login').style.display = 'none';
+    openAdmin();
+  } else {
+    document.getElementById('pwd-error').style.display = 'block';
+    document.getElementById('admin-pwd').value = '';
+  }
+}
+
+function openAdmin() {
+  document.getElementById('admin-overlay').style.display = 'block';
+  renderAdminLists();
+  // Populate plant selector
+  const pSel = document.getElementById('admin-plant-sel');
+  pSel.innerHTML = '<option value="">Choose plant...</option>';
+  adminData.plants.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p; pSel.appendChild(o);
+  });
+}
+
+function closeAdmin() {
+  document.getElementById('admin-overlay').style.display = 'none';
+}
+
+function renderAdminLists() {
+  renderTagList('admin-channels-list', adminData.channels, 'channels');
+  renderTagList('admin-plants-list', adminData.plants, 'plants');
+  renderTagList('admin-cgroups-list', adminData.cgroups, 'cgroups');
+  renderTagList('admin-industries-list', adminData.industries, 'industries');
+}
+
+function renderTagList(containerId, arr, key) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  arr.forEach((item, idx) => {
+    const tag = document.createElement('div');
+    tag.className = 'admin-tag';
+    tag.innerHTML = `<span>${item}</span><button onclick="removeItem('${key}',${idx})" title="Remove">✕</button>`;
+    el.appendChild(tag);
+  });
+}
+
+function addItem(key, inputId) {
+  const val = document.getElementById(inputId).value.trim();
+  if (!val) return;
+  adminData[key].push(val);
+  document.getElementById(inputId).value = '';
+  renderAdminLists();
+  // Refresh plant selector if needed
+  if (key === 'plants') {
+    const pSel = document.getElementById('admin-plant-sel');
+    const o = document.createElement('option');
+    o.value = val; o.textContent = val;
+    pSel.appendChild(o);
+  }
+}
+
+function removeItem(key, idx) {
+  adminData[key].splice(idx, 1);
+  renderAdminLists();
+}
+
+// Governorate management
+function loadAdminGovs() {
+  const plant = document.getElementById('admin-plant-sel').value;
+  const govSec = document.getElementById('admin-gov-section');
+  const areaSec = document.getElementById('admin-area-section');
+  areaSec.style.display = 'none';
+  if (!plant) { govSec.style.display = 'none'; return; }
+  if (!adminData.hierarchy[plant]) adminData.hierarchy[plant] = {};
+  govSec.style.display = 'block';
+  const govs = Object.keys(adminData.hierarchy[plant]);
+  // Render gov tags
+  const govList = document.getElementById('admin-govs-list');
+  govList.innerHTML = '';
+  govs.forEach(g => {
+    const tag = document.createElement('div');
+    tag.className = 'admin-tag';
+    tag.innerHTML = `<span>${g}</span><button onclick="removeGov('${g}')" title="Remove">✕</button>`;
+    govList.appendChild(tag);
+  });
+  // Populate gov selector
+  const gSel = document.getElementById('admin-gov-sel');
+  gSel.innerHTML = '<option value="">Choose governorate...</option>';
+  govs.forEach(g => {
+    const o = document.createElement('option');
+    o.value = g; o.textContent = g; gSel.appendChild(o);
+  });
+}
+
+function addGov() {
+  const plant = document.getElementById('admin-plant-sel').value;
+  const val = document.getElementById('new-gov').value.trim();
+  if (!plant || !val) return;
+  if (!adminData.hierarchy[plant]) adminData.hierarchy[plant] = {};
+  adminData.hierarchy[plant][val] = [];
+  document.getElementById('new-gov').value = '';
+  loadAdminGovs();
+}
+
+function removeGov(gov) {
+  const plant = document.getElementById('admin-plant-sel').value;
+  if (!plant) return;
+  delete adminData.hierarchy[plant][gov];
+  loadAdminGovs();
+}
+
+function loadAdminAreas() {
+  const plant = document.getElementById('admin-plant-sel').value;
+  const gov = document.getElementById('admin-gov-sel').value;
+  const areaSec = document.getElementById('admin-area-section');
+  if (!plant || !gov) { areaSec.style.display = 'none'; return; }
+  areaSec.style.display = 'block';
+  const areas = adminData.hierarchy[plant][gov] || [];
+  const areaList = document.getElementById('admin-areas-list');
+  areaList.innerHTML = '';
+  areas.forEach((a, idx) => {
+    const tag = document.createElement('div');
+    tag.className = 'admin-tag';
+    tag.innerHTML = `<span>${a}</span><button onclick="removeArea(${idx})" title="Remove">✕</button>`;
+    areaList.appendChild(tag);
+  });
+}
+
+function addArea() {
+  const plant = document.getElementById('admin-plant-sel').value;
+  const gov = document.getElementById('admin-gov-sel').value;
+  const val = document.getElementById('new-area').value.trim();
+  if (!plant || !gov || !val) return;
+  if (!adminData.hierarchy[plant][gov]) adminData.hierarchy[plant][gov] = [];
+  adminData.hierarchy[plant][gov].push(val);
+  document.getElementById('new-area').value = '';
+  loadAdminAreas();
+}
+
+function removeArea(idx) {
+  const plant = document.getElementById('admin-plant-sel').value;
+  const gov = document.getElementById('admin-gov-sel').value;
+  adminData.hierarchy[plant][gov].splice(idx, 1);
+  loadAdminAreas();
+}
+
+function saveAdminData() {
+  localStorage.setItem('juhayna_admin_data', JSON.stringify(adminData));
+  Object.assign(HIERARCHY, adminData.hierarchy);
+  syncFormDropdowns();
+  const st = document.getElementById('admin-save-status');
+  st.style.display = 'block';
+  st.textContent = '✓ All changes saved successfully!';
+  st.style.color = '#7bf0a0';
+  setTimeout(() => { st.style.display = 'none'; }, 3000);
+}
+
+// Init
+loadAdminData();
+</script>
